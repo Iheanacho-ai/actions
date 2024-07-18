@@ -36,39 +36,11 @@ jobs:
         uses: actions/checkout@v4
       - name: Check if the dev directory exists
         run: |
-          echo '-----BEGIN RSA PRIVATE KEY-----
-MIIEogIBAAKCAQEArEHUkkLXKjL2a+uxzr/FBKMipBVhsc4bL9YJUupFoM0t7Ljm
-g8OFmEMggejUoew+Hmq3dZn8BglkfkA0zUad7aBWQEgS6cfbnn53TiFFhTbd065J
-39b0UAMuGloV0LKp391aTwlY+8RfU7+1Vos/GxJHVyZIxZbjJKIiSjsKjZDmXjGv
-24mPYsw9KNkY4drXLqJqU4M9Gn7RBmUsXKAMt++Y5/rLxqhkT2gj+9M3aospGD+j
-ZTtlXjQf/q6hPzK6k6/MRj7mGFOy1qvf076LobiX5wiOrGO8RbCj+vzjqEqkKecB
-+jDXV2Ac2CCDlf5jz9BVjO12mCnx0T6mVEBH5wIDAQABAoIBAALQpJerTfbblFlZ
-JbO6QI7914AU9V7BfoI+njJjr7WcBMcckm/Ozy0Y07wrwOXQhYdbuRnL5Wl319OU
-WwiLweLzPtWYF+8IHBev+2UkeA1gQynFbGGjEqUIGEXH+RlLAimtZV9rSK/8mo40
-0NLUPbjEiLPs5T2NZLLhj2vlIRwFHj/VIZT3NZhQy/55iw0F2d3O2ZAjZZyYhLVV
-s+lKH9Vj0+XdGEbrlrDZndwMf/dz9oVzIDX67dmsjdflHZ8r5/RMx6YdiGwYoPXn
-IYokEq5y9hybCkHNSQjFcbaBtPBjtjJbt1T/GwBiJ8nvIn3c58/Gk5j7pAYEJSgA
-LXW+UOkCgYEA8godDmGRSkk3ZGXXuqewKKyc0IADttNHd63m6P08AalBMl1U4xyx
-dcFBx83HB4W+u3qnRTSv4U1DqCoDMXP9uicRf/BUaHIV85rxBE+iu+WgwreUWcS/
-VbU4HC/74gn0XpgyH2CqupdZm6cJZegxvP7sxLvui77VCDWHJKzt84MCgYEAtjFU
-l2oBOBEfK6PNnLeuLI7CGyTHDc8xTPOGVNLVUEC4IcZoNKvort5j3CPsJ0zLAAqt
-PpzKqPizZFyv2s9iJecQkPZCzZLeHzIlmQBB3AoaFshla3D0RoVccsUqutfJlSYq
-FVevtC12kWygdK+d4TcZvGzJImK7p1zFvPOgGM0CgYAsp3cC3zdJ6EYi7LMnSaaz
-al0oDmYhBcvKpbfTRl0axVo064ksuW94FSaIsUtF9QPiXNedagIE5BdWYCHkrsyh
-2nFdFD7OYjXwkqZisDqKxeup4OqqwSS3sE5gzO2An2uJRDUDGveEo0Wx9NhEB9md
-T77o8O8qsxNkh1OejZT89wKBgH27H2B6pCq4DiXEngF39PgE8MlgoQnToXc0W9Cv
-ysveTfPpA0LOG/6JtKpYFAGvCiyWMaaS93ySXOJ24FkFYvs7MYCIoeNSZn1q0u16
-cvjR890jIHJ7+ees4vbFQE6+2ftW4hXmdHfIJBoJt9Wu2CpzJwyUml1je5Ls//z8
-t9BFAoGAIk0VFK+EUDrAXMTVugsv3E3VWR+nOQ2SMeYNpSOYyLCVpmIVrxNqXk0k
-lZ6fVTRYYwobVyEOavs5nLd8fA/TGtwBgotp620OuKztLHX45hr+HSTaZe65IJ34
-PXiWBF05up+ePhMVwYLQW44hTPmKW9cVv0deqOpBdPnH1yEzUdo=
------END RSA PRIVATE KEY-----' > key.pem
-          chmod 600 key.pem
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '[ ! -d ~/dev ] && mkdir ~/dev || echo "Directory already exists"'
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '[ ! -d ~/dev ] && mkdir ~/dev || echo "Directory already exists"'
       - name: Synchronize files with rsync
         run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i key.pem" . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/dev
+          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }}" . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/dev
       - name: Start the application
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'cd ~/dev && go run main.go'
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.SSH_PRIVATE_KEY }} ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'cd ~/dev && go run main.go'
 
