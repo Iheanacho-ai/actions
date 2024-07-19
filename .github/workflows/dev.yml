@@ -26,27 +26,37 @@ jobs:
         with:
           go-version: '1.22.1'
       - name: Build the project
-        run: go build -v ./...
+        run: go build -o learnai_dev
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: learnai_dev
+          path: learnai_dev
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      # - name: Checkout code
+      #   uses: actions/checkout@v4
       - name: Prepare SSH key
         run: |
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > private_key
           chmod 600 private_key
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with: 
+          name: learnai_dev
       - name: Install Go on EC2 instance
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo snap install go --classic'
       - name: Check if the dev directory exists
         run: |
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '[ ! -d ~/dev ] && mkdir ~/dev || echo "Directory already exists"'
-      - name: Synchronize files with rsync
+      - name: Push the file to the EC2-instance
         run: |
-          rsync -avz -e "ssh -o StrictHostKeyChecking=no -i private_key" . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/dev
+          scp -o StrictHostKeyChecking=no -i private_key learnai_dev ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:~/dev/learnai_dev
       - name: Start the application
         run: |
-          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'cd ~/dev && go run main.go'
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'pkill -f learnai_dev || echo "No process to kill"; nohup ~/dev/learnai_dev > ~/dev/learnai_dev.log 2>&1 &'
+    
